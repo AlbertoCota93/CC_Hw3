@@ -1,12 +1,27 @@
 package mx.iteso.desi.cloud.hw3;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import mx.iteso.desi.vision.WebCamStream;
+import mx.iteso.desi.vision.ImagesMatUtils;
+import java.io.InputStream;
 import org.opencv.core.Mat;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FaceAddFrame extends javax.swing.JFrame {
-
+    AWSCredentials cred = null;
     WebCamStream webCam;
     Mat lastFrame;
+    InputStream a;
+    String st;
+    
+    
     
     public FaceAddFrame() {
         this.webCam = new WebCamStream(0);
@@ -46,7 +61,6 @@ public class FaceAddFrame extends javax.swing.JFrame {
         });
 
         stopButton.setText("Stop");
-        stopButton.setEnabled(false);
         stopButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 stopButtonActionPerformed(evt);
@@ -54,7 +68,6 @@ public class FaceAddFrame extends javax.swing.JFrame {
         });
 
         uploadButton.setText("Upload");
-        uploadButton.setEnabled(false);
         uploadButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 uploadButtonActionPerformed(evt);
@@ -111,11 +124,24 @@ public class FaceAddFrame extends javax.swing.JFrame {
 
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
         // TODO
-        webCam.stopStream();
+        photoPanel.removeAll();
+        photoPanel.add(ImagesMatUtils.MatToJLabel(webCam.stopStream()));
+        photoPanel.revalidate();
     }//GEN-LAST:event_stopButtonActionPerformed
 
     private void uploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadButtonActionPerformed
-        // TODO
+        cred = new ProfileCredentialsProvider().getCredentials(); 
+        AmazonS3 s3 = new AmazonS3Client(cred);
+        ObjectMetadata om = new ObjectMetadata();
+        try {
+            // TODO
+            a= ImagesMatUtils.MatToInputStream(webCam.stopStream());
+            om.setContentLength(a.available());
+        } catch (IOException ex) {
+            Logger.getLogger(FaceAddFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        st = nameTextField.getText();
+            s3.putObject(new PutObjectRequest(Config.srcBucket, st , a , om));
     }//GEN-LAST:event_uploadButtonActionPerformed
 
     private void closeWindow(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeWindow
