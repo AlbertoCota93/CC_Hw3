@@ -1,5 +1,12 @@
 package mx.iteso.desi.cloud.hw3;
 
+import com.amazonaws.regions.Regions;
+import com.amazonaws.util.IOUtils;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import mx.iteso.desi.vision.ImagesMatUtils;
 import mx.iteso.desi.vision.WebCamStream;
 import org.opencv.core.Mat;
 
@@ -82,7 +89,12 @@ public class FaceAuthFrame extends javax.swing.JFrame {
     private void authButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_authButtonActionPerformed
         this.lastFrame = webCam.stopStream();
         this.authButton.setEnabled(false);
-        Face f = this.doAuthLogic();
+        Face f=null;
+        try {
+            f = this.doAuthLogic();
+        } catch (IOException ex) {
+            Logger.getLogger(FaceAuthFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
         if(f.name.isEmpty()) {
             this.nameTextField.setText("Not Match");
         } else {
@@ -90,11 +102,15 @@ public class FaceAuthFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_authButtonActionPerformed
 
-    private Face doAuthLogic() {
+    private Face doAuthLogic() throws IOException {
         // TODO
-        Face face = null;
+        photoPanel.removeAll();
+        photoPanel.add(ImagesMatUtils.MatToJLabel(webCam.stopStream()));
+        photoPanel.revalidate();
+        AWSFaceCompare fc = new AWSFaceCompare(null, null,null,null);
+        byte bytes[] = IOUtils.toByteArray(ImagesMatUtils.MatToInputStream(webCam.stopStream()));
         
-        return face;
+        return fc.compare(ByteBuffer.wrap(bytes));
     }
     
     private void closeWindow(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeWindow

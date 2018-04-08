@@ -1,13 +1,14 @@
 package mx.iteso.desi.cloud.hw3;
 
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import mx.iteso.desi.vision.WebCamStream;
 import mx.iteso.desi.vision.ImagesMatUtils;
 import java.io.InputStream;
 import org.opencv.core.Mat;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import java.io.IOException;
@@ -20,7 +21,6 @@ public class FaceAddFrame extends javax.swing.JFrame {
     Mat lastFrame;
     InputStream a;
     String st;
-    
     
     
     public FaceAddFrame() {
@@ -130,10 +130,15 @@ public class FaceAddFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_stopButtonActionPerformed
 
     private void uploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadButtonActionPerformed
-        cred = new ProfileCredentialsProvider().getCredentials(); 
-        AmazonS3 s3 = new AmazonS3Client(cred);
+        
+        
         ObjectMetadata om = new ObjectMetadata();
-        try {
+        BasicAWSCredentials sc = new BasicAWSCredentials("AKIAI73YSS2GBNQGOBRA","0BeWwXrrr62I9Ykm9BLGZern5vcExN7nTrmL4rsP"); 
+            //AmazonS3 s3 = new AmazonS3Client(new ProfileCredentialsProvider());
+            AmazonS3 s3= AmazonS3ClientBuilder.standard()
+                    .withCredentials(new AWSStaticCredentialsProvider(sc)).
+                    withRegion(Config.amazonRegion).build();
+            try { 
             // TODO
             a= ImagesMatUtils.MatToInputStream(webCam.stopStream());
             om.setContentLength(a.available());
